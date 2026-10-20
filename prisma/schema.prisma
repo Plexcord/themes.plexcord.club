@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+/// Discord user. `id` is the Discord snowflake.
+model User {
+  id         String     @id @db.VarChar(32)
+  username   String     @db.VarChar(64)
+  globalName String?    @db.VarChar(64)
+  avatar     String?    @db.VarChar(64)
+  githubName String?    @db.VarChar(64)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  tokens     ApiToken[]
+  likes      Like[]
+  likeEvents LikeEvent[]
+  themes     Theme[]
+}
+
+/// UNIQUE_USER_TOKEN handed to clients. Only the SHA-256 hash is stored.
+model ApiToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique @db.Char(64)
+  userId    String   @db.VarChar(32)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum ThemeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ThemeType {
+  theme
+  snippet
+}
+
+model Theme {
+  id                      Int         @id @default(autoincrement())
+  name                    String      @unique @db.VarChar(100)
+  type                    ThemeType   @default(theme)
+  description             String      @db.Text
+  version                 String?     @db.VarChar(32)
+  /// [{ discord_snowflake, discord_name, github_name }]
+  authors                 Json
+  /// string[]
+  tags                    Json
+  /// file name inside public/uploads/thumbnails
+  thumbnail               String?     @db.VarChar(128)
+  /// file name inside public/uploads/themes
+  contentFile             String      @db.VarChar(128)
+  source                  String?     @db.Text
+  guildName               String?     @db.VarChar(100)
+  guildSnowflake          String?     @db.VarChar(32)
+  guildInvite             String?     @db.VarChar(128)
+  guildAvatarHash         String?     @db.VarChar(64)
+  requiresThemeAttributes Boolean     @default(false)
+  downloads               Int         @default(0)
+  status                  ThemeStatus @default(PENDING)
+  submitterId             String?     @db.VarChar(32)
+  submitter               User?       @relation(fields: [submitterId], references: [id], onDelete: SetNull)
+  releaseDate             DateTime    @default(now())
+  lastUpdated             DateTime?
+  createdAt               DateTime    @default(now())
+  likes                   Like[]
+  likeEvents              LikeEvent[]
+
+  @@index([status])
+  @@index([submitterId])
+}
+
+/// Downloads per UTC day, for the admin stats. One row per day.
+model DailyDownload {
+  day   DateTime @id @db.Date
+  count Int      @default(0)
+}
+
+model Like {
+  userId    String   @db.VarChar(32)
+  themeId   Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme     Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, themeId])
+  @@index([themeId])
+}
+
+/// Like/unlike history for the admin activity feed. Rows are never deleted when a like is removed.
+model LikeEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String   @db.VarChar(32)
+  themeId   Int
+  liked     Boolean
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme     Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

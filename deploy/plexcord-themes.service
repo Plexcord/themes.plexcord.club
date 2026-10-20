@@ -1,0 +1,30 @@
+[Unit]
+Description=themes.plexcord.club (Next.js)
+After=network-online.target mariadb.service mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=plexcord
+Group=plexcord
+WorkingDirectory=/home/plexcord/web/themes.plexcord.club/public_html
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -H 127.0.0.1 -p 8254
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/plexcord/web/themes.plexcord.club/public_html/public/uploads -/home/plexcord/web/themes.plexcord.club/public_html/.next/cache
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
