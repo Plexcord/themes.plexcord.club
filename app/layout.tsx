@@ -7,7 +7,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
     title: "Plexcord Themes",
-    description: "Themes and snippets for Plexcord"
+    description: "Themes and snippets for Plexcord",
+    icons: {
+        icon: { url: "/favicon.png", type: "image/png", sizes: "128x128" },
+        apple: "/favicon.png"
+    }
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

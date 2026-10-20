@@ -7,7 +7,6 @@ datasource db {
   provider = "mysql"
 }
 
-/// Discord user. `id` is the Discord snowflake.
 model User {
   id         String     @id @db.VarChar(32)
   username   String     @db.VarChar(64)
@@ -22,7 +21,6 @@ model User {
   themes     Theme[]
 }
 
-/// UNIQUE_USER_TOKEN handed to clients. Only the SHA-256 hash is stored.
 model ApiToken {
   id        Int      @id @default(autoincrement())
   tokenHash String   @unique @db.Char(64)
